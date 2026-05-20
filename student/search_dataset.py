@@ -60,7 +60,7 @@ def write_answers(save_file_path: str, results: list[MinimalSearchResults], k: i
 def get_answer(query: UnansweredQuestion, k, retriever, metadata) -> MinimalSearchResults:
     query_tokens = bm25s.tokenize(query.question)
 
-    documents, scores = retriever.retrieve(query_tokens=query_tokens, k=k)
+    documents, _ = retriever.retrieve(query_tokens=query_tokens, k=k)
 
     sources = []
     for document in documents[0]:
