@@ -19,11 +19,13 @@ class StudentRAGCli:
             max_chunk_size)
 
         index(python_corpus, markdown_corpus)
+        
+        
 
         save_metadata(python_metadata, markdown_metadata)
 
         print(
-            "Ingestion complete! Indices saved under data/processed/ [cite: 263]")
+            "Ingestion complete! Indices saved under data/processed/")
 
     def search_dataset(self, dataset_path: str, k: int = 10, save_directory: str = "data/output/search_results"):
         """

@@ -1,7 +1,5 @@
-import re
 import bm25s
 import json
-import argparse
 from pathlib import Path
 from student.models import MinimalSource, UnansweredQuestion, AnsweredQuestion, MinimalSearchResults
 
@@ -50,6 +48,7 @@ def write_answers(save_file_path: str, results: list[MinimalSearchResults], k: i
     for result in results:
         search_results.append({
             "question_id": result.question_id,
+            "question_str": result.question,
             "retrieved_sources": [minimal_source.model_dump()
                                   for minimal_source in result.retrieved_sources]
         })

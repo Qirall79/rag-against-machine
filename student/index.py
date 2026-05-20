@@ -133,6 +133,9 @@ def chunk_file(file_path: str, max_chunk_size=2000, chunk_overlap=500) -> list[s
 
 def build_knowledge_base(max_chunk_size: int):
 
+    current_dir = Path(__file__).parent.resolve()
+    project_root = current_dir.parent
+
     python_files, markdown_files = list_knowledge_files()
 
     python_chunks_content = []
@@ -142,18 +145,41 @@ def build_knowledge_base(max_chunk_size: int):
     markdown_chunks_metadata = []
 
     for file in python_files:
-        chunks = chunk_file(str(file), max_chunk_size)
+        full_path = Path(file)
+        
+        try:
+            parts = full_path.parts
+            data_index = parts.index("data")
+            clean_unix_path = "/".join(parts[data_index:])
+        except ValueError:
+            clean_unix_path = full_path.as_posix()
+
+        chunks = chunk_file(str(full_path), max_chunk_size)
         for chunk in chunks:
             python_chunks_content.append(chunk['content'])
-            python_chunks_metadata.append(MinimalSource(
-                **chunk))
+            
+            # for unix-style paths
+            chunk_data = chunk.copy()
+            chunk_data['file_path'] = clean_unix_path
+            python_chunks_metadata.append(MinimalSource(**chunk_data))
 
     for file in markdown_files:
-        chunks = chunk_file(str(file), max_chunk_size)
+        full_path = Path(file)
+        
+        try:
+            parts = full_path.parts
+            data_index = parts.index("data")
+            clean_unix_path = "/".join(parts[data_index:])
+        except ValueError:
+            clean_unix_path = full_path.as_posix()
+        
+        chunks = chunk_file(str(full_path), max_chunk_size)
         for chunk in chunks:
             markdown_chunks_content.append(chunk['content'])
-            markdown_chunks_metadata.append(MinimalSource(
-                **chunk))
+            
+            chunk_data = chunk.copy()
+            chunk_data['file_path'] = clean_unix_path
+            markdown_chunks_metadata.append(MinimalSource(**chunk_data))
 
     return python_chunks_content, python_chunks_metadata, markdown_chunks_content, markdown_chunks_metadata
 
