@@ -49,7 +49,7 @@ If you are running on **Windows**, it is highly recommended to clone this reposi
 ### 2. Clone and Synchronize Workspace
 ```bash
 # Clone the repository
-git clone [https://github.com/yourusername/rag-agains-machine.git](https://github.com/yourusername/rag-agains-machine.git)
+git clone [https://github.com/qirall79/rag-agains-machine.git](https://github.com/qirall79/rag-agains-machine.git)
 cd rag-agains-machine
 
 # Create a virtual environment and sync locked dependencies
