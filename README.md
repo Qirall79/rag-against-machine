@@ -1,10 +1,10 @@
-# RAG Against the Machine 🤖🔍
+# RAG Against the Machine
 
 A high-performance, source-grounded **Retrieval-Augmented Generation (RAG)** pipeline built from scratch to query complex codebases. This system utilizes a custom tokenized **BM25s** search engine optimized for code syntax extraction, paired with a locally hosted **Qwen 0.6B LLM** to generate highly precise, factual, and hallucination-free technical answers.
 
 ---
 
-## 🚀 Performance Metrics
+## Performance Metrics
 Evaluated natively via automated integration test suites (`moulinette`), the retrieval core successfully surpasses standard baseline thresholds:
 
 * **Recall@1:** `65.0%` (High-precision single-shot match)
@@ -14,7 +14,7 @@ Evaluated natively via automated integration test suites (`moulinette`), the ret
 
 ---
 
-## 🛠️ System Architecture
+## System Architecture
 
 1. **Codebase Chunker (`index.py`)**: Traverses source directories recursively to slice `.py` and `.md` files. It employs custom regular expression boundaries (`def`, `class`, and `\n\n`) to retain code-block integrity, tracking precise character coordinates (`first_character_index` to `last_character_index`).
 2. **Retrieval Core (`bm25s`)**: Tokenizes the raw text corpus, strips English stopwords, compiles a highly sparse keyword inverted index, and flushes persistent binary indices to disk alongside relative POSIX metadata profiles.
@@ -22,7 +22,7 @@ Evaluated natively via automated integration test suites (`moulinette`), the ret
 
 ---
 
-## 📁 Directory Structure
+## Directory Structure
 
 ```text
 rag-agains-machine/
@@ -39,7 +39,7 @@ rag-agains-machine/
 └── README.md
 ```
 
-## 🔧 Installation & Environment Setup
+## Installation & Environment Setup
 
 This project uses **`uv`**, a fast Python package installer and resolver written in Rust.
 
@@ -63,7 +63,7 @@ Force the initial download of the Qwen weights to satisfy cold start pipeline ti
 uv run python -c "from transformers import AutoModel; AutoModel.from_pretrained('Qwen/Qwen3-0.6B', trust_remote_code=True)"
 ```
 
-## 💻 Command Line Interface (CLI) Execution
+## Command Line Interface (CLI) Execution
 
 The system exposes unified pipeline methods managed via the `python-fire` wrapper ecosystem.
 
@@ -85,7 +85,7 @@ Process a comprehensive validation dataset in bulk to output structured retrieva
 uv run python -m student answer_dataset --student_search_results_path "data/output/search_results.json"
 ```
 
-## 🎯 Verification and Grading
+## Verification and Grading
 
 To run structural consistency checks and calculate recall accuracies against the gold standard ground truth validation targets, execute the corresponding native testing binaries:
 
