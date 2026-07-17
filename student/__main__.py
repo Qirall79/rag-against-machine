@@ -1,7 +1,8 @@
 import fire
 from pathlib import Path
+from sentence_transformers import SentenceTransformer
 from student.index import build_knowledge_base, index, save_metadata
-from student.search_dataset import load_metadata, load_index, load_json_file, get_answer, write_answers
+from student.search_dataset import load_metadata, load_index, load_json_file, get_answer, write_answers, load_embeddings, get_semantic_result
 from student.answer_dataset import load_search_results, get_answers, read_chunk, generate_response, write_search_results_answers
 from student.models import UnansweredQuestion, StudentSearchResultsAndAnswer
 
@@ -33,14 +34,19 @@ class StudentRAGCli:
         """
         print(f"Loading queries from: {dataset_path}")
 
+        model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+        
+        
         metadata = load_metadata()
         retriever = load_index()
+        corpus_embeddings = load_embeddings()
         queries = load_json_file(dataset_path)
 
         results = []
         for query in queries:
-            search_result = get_answer(query, k, retriever, metadata)
-            results.append(search_result)
+            result = get_answer(query, k, retriever,
+                                corpus_embeddings, metadata, model=model)
+            results.append(result)
 
         output_name = Path(dataset_path).name
         output_file_path = Path(save_directory) / output_name
@@ -49,8 +55,9 @@ class StudentRAGCli:
         print(f"Saved student_search_results to {output_file_path}")
 
     def answer_dataset(self, student_search_results_path: str, save_directory: str = "data/output/search_results_and_answer", k: int = 5):
-        answers = StudentSearchResultsAndAnswer(search_results=get_answers(load_search_results(student_search_results_path)), k=k) 
-        
+        answers = StudentSearchResultsAndAnswer(search_results=get_answers(
+            load_search_results(student_search_results_path)), k=k)
+
         output_name = Path(student_search_results_path).name
         output_file_path = Path(save_directory) / output_name
 
@@ -60,17 +67,21 @@ class StudentRAGCli:
     def answer(self, question: str, k: int = 10):
         metadata = load_metadata()
         retriever = load_index()
-        
+        corpus_embeddings = load_embeddings()
+
         query = UnansweredQuestion(question=question)
-        search_result = get_answer(query, k, retriever, metadata)
+        search_result = get_answer(query=query, k=k, retriever=retriever,
+                                   metadata=metadata, corpus_embeddings=corpus_embeddings)
         relevant_chunks = []
         for source in search_result.retrieved_sources:
-            relevant_chunks.append(read_chunk(source.file_path, source.first_character_index, source.last_character_index))
+            relevant_chunks.append(read_chunk(
+                source.file_path, source.first_character_index, source.last_character_index))
 
         context = "\n---\n".join(relevant_chunks)
         answer = generate_response(search_result.question, context)
-        
+
         print(answer)
+
 
 def main():
     fire.Fire(StudentRAGCli)

@@ -17,15 +17,15 @@ tokenizer = AutoTokenizer.from_pretrained(
 
 
 def load_search_results(path: str) -> StudentSearchResults:
-    current_dir = Path(__file__).parent.resolve()
-    absolute_file_path = current_dir / path
+    root_dir = Path(__file__).parent.parent.resolve()
+    absolute_file_path = root_dir / path
 
     search_results = {}
 
     with open(absolute_file_path, 'r', encoding='utf-8') as f:
         search_results = json.load(f)
 
-    minimal_search_results = [MinimalSearchResults(question=search_result.get('question_str'), question_id=search_result.get('question_id'), retrieved_sources=[
+    minimal_search_results = [MinimalSearchResults(question=search_result.get('question'), question_id=search_result.get('question_id'), retrieved_sources=[
                                                    MinimalSource(**source) for source in search_result.get('retrieved_sources')]) for search_result in search_results.get('search_results')]
 
     return StudentSearchResults(k=search_results.get('k'),
@@ -34,8 +34,8 @@ def load_search_results(path: str) -> StudentSearchResults:
 
 
 def read_chunk(file_path: str, first_character_index: int, last_character_index: int):
-    current_dir = Path(__file__).parent.resolve()
-    absolute_file_path = current_dir / file_path
+    root_dir = Path(__file__).parent.parent.resolve()
+    absolute_file_path = root_dir / file_path
 
     full_content = read_file_content(str(absolute_file_path))
     return full_content[first_character_index:last_character_index]
@@ -92,9 +92,10 @@ def get_answers(student_search_results: StudentSearchResults) -> list[MinimalAns
 
     return answers
 
+
 def write_search_results_answers(save_file_path: str, results: StudentSearchResultsAndAnswer, k: int):
-    current_dir = Path(__file__).parent.resolve()
-    absolute_save_path = current_dir / save_file_path
+    root_dir = Path(__file__).parent.parent.resolve()
+    absolute_save_path = root_dir / save_file_path
 
     absolute_save_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -103,7 +104,7 @@ def write_search_results_answers(save_file_path: str, results: StudentSearchResu
     for result in results.search_results:
         search_results.append({
             "question_id": result.question_id,
-            "question_str": result.question,
+            "question": result.question,
             "answer": result.answer,
             "retrieved_sources": [minimal_source.model_dump()
                                   for minimal_source in result.retrieved_sources]

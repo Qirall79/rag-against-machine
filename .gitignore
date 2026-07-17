@@ -15,3 +15,6 @@ student/.env
 data/
 student/data/
 public
+
+# moulinette
+moulinette/

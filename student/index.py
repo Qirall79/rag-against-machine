@@ -2,8 +2,10 @@ import re
 import bm25s
 import json
 import argparse
+import numpy as np
 from pathlib import Path
 from student.models import MinimalSource
+from sentence_transformers import SentenceTransformer
 
 
 def load_args():
@@ -22,8 +24,8 @@ def load_args():
 
 
 def list_knowledge_files():
-    current_dir = Path(__file__).parent.resolve()
-    repo_path = current_dir / 'data' / 'raw' / 'vllm-0.10.1'
+    root_dir = Path(__file__).parent.parent.resolve()
+    repo_path = root_dir / 'data' / 'raw' / 'vllm-0.10.1'
     python_files = repo_path.rglob(pattern='*.py')
     md_files = repo_path.rglob(pattern='*.md')
 
@@ -133,8 +135,7 @@ def chunk_file(file_path: str, max_chunk_size=2000, chunk_overlap=500) -> list[s
 
 def build_knowledge_base(max_chunk_size: int):
 
-    current_dir = Path(__file__).parent.resolve()
-    project_root = current_dir.parent
+    root_dir = Path(__file__).parent.parent.resolve()
 
     python_files, markdown_files = list_knowledge_files()
 
@@ -146,7 +147,7 @@ def build_knowledge_base(max_chunk_size: int):
 
     for file in python_files:
         full_path = Path(file)
-        
+
         try:
             parts = full_path.parts
             data_index = parts.index("data")
@@ -157,7 +158,7 @@ def build_knowledge_base(max_chunk_size: int):
         chunks = chunk_file(str(full_path), max_chunk_size)
         for chunk in chunks:
             python_chunks_content.append(chunk['content'])
-            
+
             # for unix-style paths
             chunk_data = chunk.copy()
             chunk_data['file_path'] = clean_unix_path
@@ -165,18 +166,18 @@ def build_knowledge_base(max_chunk_size: int):
 
     for file in markdown_files:
         full_path = Path(file)
-        
+
         try:
             parts = full_path.parts
             data_index = parts.index("data")
             clean_unix_path = "/".join(parts[data_index:])
         except ValueError:
             clean_unix_path = full_path.as_posix()
-        
+
         chunks = chunk_file(str(full_path), max_chunk_size)
         for chunk in chunks:
             markdown_chunks_content.append(chunk['content'])
-            
+
             chunk_data = chunk.copy()
             chunk_data['file_path'] = clean_unix_path
             markdown_chunks_metadata.append(MinimalSource(**chunk_data))
@@ -185,14 +186,23 @@ def build_knowledge_base(max_chunk_size: int):
 
 
 def index(python_corpus, markdown_corpus):
+
     corpus = python_corpus + markdown_corpus
     project_root = Path(__file__).parent.parent.resolve()
-    output_dir = project_root / "data" / "processed" / "bm25_index"
 
+    # semantic indexing
+    model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+    embeddings = model.encode(corpus, normalize_embeddings=True)
+    output_dir = project_root / "data" / "processed" / "embeddings.npy"
+    np.save(file=output_dir, arr=embeddings)
+
+    # BM25s indexing
+    output_dir = project_root / "data" / "processed" / "bm25_index"
     corpus_tokens = bm25s.tokenize(corpus, stopwords='en')
     retriever = bm25s.BM25(corpus=corpus)
     retriever.index(corpus_tokens)
     retriever.save(output_dir)
+
     return retriever
 
 
