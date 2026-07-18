@@ -11,6 +11,8 @@ class StudentRAGCli:
     """
     RAG Pipeline Retrieval Engine CLI managed by Python Fire
     """
+    
+    model = None
 
     def index(self, max_chunk_size: int = 2000):
         """
@@ -34,7 +36,7 @@ class StudentRAGCli:
         """
         print(f"Loading queries from: {dataset_path}")
 
-        model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+        self.model = self.model if self.model else SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
         
         
         metadata = load_metadata()
@@ -45,7 +47,7 @@ class StudentRAGCli:
         results = []
         for query in queries:
             result = get_answer(query, k, retriever,
-                                corpus_embeddings, metadata, model=model)
+                                corpus_embeddings, metadata, model=self.model)
             results.append(result)
 
         output_name = Path(dataset_path).name
@@ -68,10 +70,12 @@ class StudentRAGCli:
         metadata = load_metadata()
         retriever = load_index()
         corpus_embeddings = load_embeddings()
+        
+        self.model = self.model if self.model else SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
 
         query = UnansweredQuestion(question=question)
         search_result = get_answer(query=query, k=k, retriever=retriever,
-                                   metadata=metadata, corpus_embeddings=corpus_embeddings)
+                                   metadata=metadata, corpus_embeddings=corpus_embeddings, model=self.model)
         relevant_chunks = []
         for source in search_result.retrieved_sources:
             relevant_chunks.append(read_chunk(
