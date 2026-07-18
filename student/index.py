@@ -135,8 +135,6 @@ def chunk_file(file_path: str, max_chunk_size=2000, chunk_overlap=500) -> list[s
 
 def build_knowledge_base(max_chunk_size: int):
 
-    root_dir = Path(__file__).parent.parent.resolve()
-
     python_files, markdown_files = list_knowledge_files()
 
     python_chunks_content = []
